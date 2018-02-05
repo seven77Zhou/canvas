@@ -1,0 +1,97 @@
+<html>
+	<head>
+		<title>飘飞小球背景</title>
+		<style type="text/css">
+			.canvasBox{width: 600px; margin: 100px auto;}
+		</style>
+	</head>
+	<body>
+		<div class="canvasBox">
+			<canvas id="myCanvas" style="width: 600px; height: 600px;">ie9以上才支持canvas哦</canvas>
+		</div>
+		
+		<script type="text/javascript">
+		/*
+		 by: qiqi 
+		 * */
+			var canvas = document.getElementById('myCanvas');//获取元素
+			var ctx=canvas.getContext("2d");//创建画布对象
+			var mW = 1200;
+		  	var mH = 1200;
+		  	canvas.width = mW;
+			canvas.height = mH;
+			canvas.style.border='1px solid #f00';
+			//画布左上角到右下角线性渐变
+		  	var grd = ctx.createLinearGradient(0,0,mW,mH);
+		  		grd.addColorStop(0,"#79139a");
+				grd.addColorStop(0.5,"#133f9a");
+				grd.addColorStop(1,"#13729a");			
+			ctx.fillStyle = grd;
+			ctx.fillRect(0,0,mW,mH);
+			
+			//定义小球对象
+			function Dotts(){
+				this.x = Math.random().toFixed(2)*mW;
+				this.y = Math.random().toFixed(2)*mH;
+				this.xSped = Math.random()+0.1;
+    			this.ySped = Math.random()+0.1;
+    			this.r = Math.ceil(Math.random()*10%3);
+			}
+			Dotts.prototype={
+				update:function(){
+					//定义小球运动方式
+					if (this.x > mW) {
+			            this.xSped = -this.xSped;//超过画布宽度，小球回来，增值为负
+			        } else if (this.x < 0) {
+			            this.xSped = Math.abs(this.xSped);
+			        }
+			        if (this.y > mH) {
+			            this.ySped = -this.ySped;
+			        } else if (this.y < 0) {
+			            this.ySped = Math.abs(this.ySped);
+			        }
+					this.x += this.xSped;
+					this.y += this.ySped;
+				},
+				render:function(){
+					this.update();
+					//渲染小球
+					ctx.beginPath();  
+		            ctx.arc(this.x,this.y,this.r,0,Math.PI*2,false);  
+		            //给小球填充径向渐变
+		            var radgrad = ctx.createRadialGradient(this.x,this.y,2,this.x,this.y,0);
+				        radgrad.addColorStop(0, 'rgba(255,255,255, 0.2)');
+				        radgrad.addColorStop(0.75, 'rgba(255,255,255, 0.9)');
+				        ctx.fillStyle = radgrad;
+		            ctx.fill();  
+				}
+			}
+			
+			
+			function renderDotts(){
+				//记住在每次重新绘制前，需要清除掉原来的，否则原来的小球不会消失哦
+				ctx.clearRect(0,0,mW,mH);
+				ctx.fillStyle = grd;
+				ctx.fillRect(0,0,mW,mH);
+				//遍历存有小球实例的数组，分别渲染
+				for (var i=0; i < dottsArr.length; i++) {
+					dottsArr[i].render()
+				}
+			}			
+			function go(){
+				setInterval(function(){
+					renderDotts()
+				},20)
+			}
+			//创建数据存放实例化的小球
+			var dottsArr = [];
+			for (var i=0; i < 20; i++) {
+				var mydotts = new Dotts();//实例化小球对象，存入dottsArr数组中
+				dottsArr.push(mydotts);
+				go()
+			}
+			
+			 
+		</script>
+	</body>
+</html>

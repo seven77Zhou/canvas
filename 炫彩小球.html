@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+	</head>
+	<body>
+		<canvas id="ball" width="1800" height="900">
+			ie9以上才支持canvas; 兼容的话用flash
+		</canvas>
+		<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			var canvas = document.getElementById('ball');
+			var ctx = canvas.getContext('2d');
+			canvas.style.border='1px solid #ccc';
+					
+			function ball(x,y,color){
+				this.x=x;
+				this.y=y;
+				this.r=10+Math.random()*20;
+				this.color=color;
+				arrayBall.push(this); //每次实例化时，都往数组里面添加小球
+			}
+			ball.prototype={
+				//更新
+				update:function(){
+					this.x += Math.random()*10-25;
+					this.y += Math.random()*10-25;
+					this.r -= Math.random()*10-0.5;
+					//半径小于0，删除数组中的小球实例
+					if(this.r<0){
+						arrayBall.splice($.inArray(this,arrayBall),1);
+					}
+
+				},
+				
+				//渲染
+				render:function(){
+					ctx.beginPath();
+					ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+					ctx.fillStyle=this.getcolor();
+					ctx.fill();
+				},
+				
+				//取随机颜色
+				getcolor:function(){
+					var colorNum = this.color.length,colorIndex;
+						colorIndex = parseInt(Math.random()*colorNum);
+					return this.color[colorIndex];
+				}
+			}
+			var arrayBall = new Array();
+
+			setInterval(function(){
+				ctx.clearRect(0,0,canvas.width,canvas.height);//不清除的话，原来小球不会消失的
+				for(var i=0; i<arrayBall.length;i++){
+					arrayBall[i].update();
+					//如果小球没有被删除，则继续渲染
+					if(arrayBall[i]){
+						arrayBall[i].render();
+					}
+					
+				}
+			},1000/20)
+				
+			canvas.addEventListener('mousemove',function(){
+				new ball(event.x,event.y,['#f63','red','blue','#ccc','#0f0','purple']);
+			})
+		</script>
+	</body>
+</html>

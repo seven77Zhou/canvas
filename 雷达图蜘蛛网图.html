@@ -1,0 +1,158 @@
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+		<title></title>
+		<style type="text/css">
+			.canvasbox{text-align: center;}
+		</style>
+	</head>
+	<body>
+		<div class="canvasbox">
+			<canvas id="myCanvas" style="width: 400px; height: 400px;"></canvas>
+		</div>
+		
+		<script type="text/javascript">
+		  var canvas = document.getElementById("myCanvas");
+		  var mW = 800;//实际元素比该值少一半，否则绘制的文字模糊
+		  var mH = 800;
+		  var mData = [['北京', 880],//每格的数是1000/6，因为每条线100%的状态是：166.6每个格子
+					  ['丽江', 600],
+					  ['拉萨', 350],
+					  ['上海', 1000],
+					  ['深圳', 720],
+					  ['杭州', 790]];
+			var mCount = mData.length; //边数	
+			var mCenter = mW/2; //中心点
+			var mRadius = mCenter-115; //半径(减去的值用于给绘制的文本留空间)
+			var mAngle = Math.PI * 2 / mCount; //角度
+			var mCtx = null;
+			var mColorPolygon = 'rgba(255,255,255,.4)'; //多边形颜色
+			var mColorLines = 'rgba(255,255,255,.4)'; //顶点连线颜色
+			var mColorText = '#fff';
+			//蜘蛛网图
+			var chart = {
+					init: function(dIndexData){
+						var _this = this;
+						//初始化
+						  canvas.height = mH;
+						  canvas.width = mW;
+						  mCtx = canvas.getContext('2d');
+						  mCtx.fillStyle = "#3a1873";
+						  mCtx.fillRect(0,0,mW,mH);
+						  
+						  this.drawPolygon(mCtx);
+						  this.drawLines(mCtx);
+						  this.drawText(mCtx);
+						  setTimeout(function(){
+						  	_this.drawRegionBg(mCtx);	
+						  },300)
+						  setTimeout(function(){
+						  	_this.drawRegion(mCtx);
+						  },600)
+						 
+						    
+				  	},
+					  // 绘制多边形边
+				    drawPolygon:function(ctx){
+					  	ctx.save();
+					  	ctx.strokeStyle = mColorPolygon;
+					  	var r = mRadius/mCount; //单位半径,网之间的距离
+					  	//画6个圈
+					  	for(var i = 0; i < mCount; i ++){
+					  		ctx.beginPath();  		
+					  		var currR = r * ( i + 1); //当前半径
+					  		//画6条边
+					  		for(var j = 0; j < mCount; j ++){
+					  			var x = mCenter + currR * Math.sin(mAngle * j);
+					  			var y = mCenter + currR * Math.cos(mAngle * j);
+					  			ctx.lineTo(x, y);
+					  		}
+					  		ctx.closePath()
+					  		ctx.stroke();
+					  	}  	
+					  	ctx.restore();
+				    },
+						
+					//顶点连线
+					drawLines: function(ctx){
+						ctx.save();		
+						ctx.beginPath();
+						ctx.strokeStyle = mColorLines;	
+						for(var i = 0; i < mCount; i ++){
+							var x = mCenter + mRadius * Math.sin(mAngle * i);
+							var y = mCenter + mRadius * Math.cos(mAngle * i);
+							
+							ctx.moveTo(mCenter, mCenter);
+							ctx.lineTo(x, y);
+						}	
+						ctx.stroke();	
+						ctx.restore();
+					},						
+					//绘制文本
+					drawText:function(ctx){
+						ctx.save();
+						
+						var fontSize = mCenter / 12;
+						ctx.font = fontSize + 'px Microsoft Yahei';
+						ctx.fillStyle = mColorText;
+						
+						for(var i = 0; i < mCount; i ++){
+							//设置文字位置坐标
+							var x = mCenter + mRadius * Math.sin(mAngle * i);
+							var y = mCenter + mRadius * Math.cos(mAngle * i);
+							if( mAngle * i >= 0 && mAngle * i < Math.PI/3 ){//北京
+								ctx.fillText(mData[i][0], x- ctx.measureText(mData[i][0]).width/2, y + fontSize + fontSize/2);	
+							}else if(mAngle * i  >= Math.PI/3 && mAngle * i <= Math.PI / 2){//丽江
+								ctx.fillText(mData[i][0], x + mRadius/12, y + fontSize + fontSize/3);	
+							}else if(mAngle * i > Math.PI / 2 && mAngle * i <Math.PI){//拉萨
+								ctx.fillText(mData[i][0],x + mRadius/12 , y + fontSize -mRadius/6.5);	
+							}else if(mAngle * i == Math.PI){//上海
+								ctx.fillText(mData[i][0],x - ctx.measureText(mData[i][0]).width/2, y + fontSize -mRadius/5);	
+							}else if(mAngle * i > Math.PI && mAngle * i <= Math.PI * 3 / 2){//深圳
+								ctx.fillText(mData[i][0], x - ctx.measureText(mData[i][0]).width -mRadius/12 , y);	
+							}else{
+								ctx.fillText(mData[i][0], x-ctx.measureText(mData[i][0]).width -mRadius/12, y+fontSize);
+							}
+							
+						}		
+						ctx.restore();
+					},
+						
+					//绘制数据区域
+					drawRegion:	function(ctx){
+						ctx.save();	
+						ctx.beginPath();
+						for(var i = 0; i < mCount; i ++){
+							var x = mCenter + mRadius * Math.sin(mAngle * i) * mData[i][1] / 1000;
+							var y = mCenter + mRadius * Math.cos(mAngle * i) * mData[i][1] / 1000;
+							ctx.lineTo(x, y);
+						}
+						ctx.closePath();
+						//数据区域填充渐变色
+						var grd=ctx.createRadialGradient(400,400,160,400,400,0);
+								grd.addColorStop(0,"#f63");
+								grd.addColorStop(1,"#fff833");
+						ctx.fillStyle = grd;
+						ctx.fill();
+						ctx.restore();
+					},
+					//绘制半透明背景
+					drawRegionBg:function(ctx){
+						ctx.save();	
+						ctx.beginPath();
+						for(var i = 0; i < mCount; i ++){
+							var x = mCenter +mRadius * Math.sin(mAngle * i) * (mData[i][1]+70) / 1000;
+							var y = mCenter + mRadius  * Math.cos(mAngle * i) * (mData[i][1]+70) / 1000;
+							ctx.lineTo(x, y);
+						}
+						ctx.closePath();
+						ctx.fillStyle = 'rgba(255,255,255,.2)';
+						ctx.fill();
+						ctx.restore();
+					}
+						
+				}
+			chart.init()
+		</script>
+	</body>
+</html>
